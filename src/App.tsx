@@ -1,10 +1,25 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useMachine } from "@xstate/react";
 import { Button, Modal, ModalClose, ModalDialog, Card } from "@mui/joy";
 import { machine } from "./state";
 
+const persistedState = JSON.parse(localStorage.getItem('hello-xstate') || '{}')
+const stateConfig = {}
+if (Object.keys(persistedState).length) {
+  stateConfig['state'] = persistedState
+}
+
 function App() {
-  const [ current, send ]= useMachine(machine);
+  const [ current, send, service ] = useMachine(machine, stateConfig);
+
+  useEffect(() => {
+    const subscription = service.subscribe((state) => {
+      // simple state logging
+      localStorage.setItem('hello-xstate', JSON.stringify(state))
+    })
+
+    return subscription.unsubscribe
+  }, [service])
 
   function renderState() {
     switch(current.value) {
